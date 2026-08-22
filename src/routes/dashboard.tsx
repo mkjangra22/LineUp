@@ -57,13 +57,13 @@ import {
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Queue dashboard — Smart Queue" },
+      { title: "Queue dashboard — LineUp" },
       {
         name: "description",
         content:
           "Your live queue: see who is waiting, call the next person, and share your QR code.",
       },
-      { property: "og:title", content: "Queue dashboard — Smart Queue" },
+      { property: "og:title", content: "Queue dashboard — LineUp" },
       {
         property: "og:description",
         content: "Call the next customer and watch the line update live.",
@@ -143,7 +143,7 @@ function Dashboard() {
               <QrCode className="size-5" />
             </span>
             <span className="font-display text-lg font-bold tracking-tight">
-              Smart Queue
+              LineUp
             </span>
           </Link>
           <Button

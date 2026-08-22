@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Smart Queue design system — "paper ticket stub".
+ * LineUp design system — "paper ticket stub".
  * Warm paper background, deep ink text, a terracotta call-to-action.
  * All colors are oklch tokens. Never hardcode colors in components.
  */

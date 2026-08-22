@@ -4,13 +4,13 @@ import { QrCode, Users, BellRing, ArrowRight } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Smart Queue — turn your line into a QR code" },
+      { title: "LineUp — turn your line into a QR code" },
       {
         name: "description",
         content:
           "Print one QR code. Customers scan, enter their name, and get a queue number. You call the next person from a live dashboard.",
       },
-      { property: "og:title", content: "Smart Queue — turn your line into a QR code" },
+      { property: "og:title", content: "LineUp — turn your line into a QR code" },
       {
         property: "og:description",
         content:
@@ -47,7 +47,7 @@ function Landing() {
           <span className="flex size-9 items-center justify-center rounded-xl warm-gradient text-primary-foreground">
             <QrCode className="size-5" />
           </span>
-          <span className="font-display text-lg font-bold tracking-tight">Smart Queue</span>
+          <span className="font-display text-lg font-bold tracking-tight">LineUp</span>
         </div>
         <Link
           to="/auth"
@@ -146,7 +146,7 @@ function Landing() {
       </main>
 
       <footer className="border-t border-border py-10 text-center text-sm text-muted-foreground">
-        Smart Queue — one QR code, zero waiting-room confusion.
+        LineUp — one QR code, zero waiting-room confusion.
       </footer>
     </div>
   );

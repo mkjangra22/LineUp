@@ -19,13 +19,13 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/q/$slug")({
   head: () => ({
     meta: [
-      { title: "Join the queue — Smart Queue" },
+      { title: "Join the queue — LineUp" },
       {
         name: "description",
         content:
           "Enter your name to get a queue number and watch your place in line update live.",
       },
-      { property: "og:title", content: "Join the queue — Smart Queue" },
+      { property: "og:title", content: "Join the queue — LineUp" },
       {
         property: "og:description",
         content: "Get a queue number on your phone. No login, no download.",
@@ -36,7 +36,7 @@ export const Route = createFileRoute("/q/$slug")({
 });
 
 function storageKey(slug: string) {
-  return `smart-queue-ticket:${slug}`;
+  return `lineup-ticket:${slug}`;
 }
 
 function JoinPage() {
@@ -117,7 +117,7 @@ function JoinPage() {
               <QrCode className="size-4" />
             </span>
             <span className="font-display text-base font-bold tracking-tight">
-              Smart Queue
+              LineUp
             </span>
           </Link>
         )}

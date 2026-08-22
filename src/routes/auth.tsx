@@ -18,13 +18,13 @@ export const Route = createFileRoute("/auth")({
   }),
   head: () => ({
     meta: [
-      { title: "Owner sign in — Smart Queue" },
+      { title: "Owner sign in — LineUp" },
       {
         name: "description",
         content:
-          "Sign in or create a Smart Queue account to get your QR code and live queue dashboard.",
+          "Sign in or create a LineUp account to get your QR code and live queue dashboard.",
       },
-      { property: "og:title", content: "Owner sign in — Smart Queue" },
+      { property: "og:title", content: "Owner sign in — LineUp" },
       {
         property: "og:description",
         content: "Create your queue in under a minute and print your QR code.",
@@ -97,7 +97,7 @@ function AuthPage() {
           <span className="flex size-9 items-center justify-center rounded-xl warm-gradient text-primary-foreground">
             <QrCode className="size-5" />
           </span>
-          <span className="font-display text-lg font-bold tracking-tight">Smart Queue</span>
+          <span className="font-display text-lg font-bold tracking-tight">LineUp</span>
         </Link>
       </header>
 
