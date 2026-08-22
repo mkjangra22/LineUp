@@ -96,19 +96,30 @@ function Landing() {
           </div>
 
           <div className="relative mx-auto w-full max-w-sm">
-            <div className="stub-notched px-8 py-9">
-              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
-                Now serving
-              </p>
-              <p className="font-display text-8xl font-extrabold leading-none text-primary">
-                A-42
-              </p>
+            <div className="stub-notched px-8 py-8">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+                    Now serving
+                  </p>
+                  <p className="mt-1.5 font-display text-6xl font-extrabold leading-none text-primary">
+                    A-21
+                  </p>
+                </div>
+                <div className="shrink-0 rounded-2xl border border-border bg-paper p-2 shadow-xs">
+                  <img
+                    src="/mk-qr.png"
+                    alt="Scan QR"
+                    className="size-20 rounded-xl object-contain"
+                  />
+                </div>
+              </div>
               <div className="my-6 border-t border-dashed border-border" />
               <ul className="space-y-3 text-sm">
                 {[
-                  ["43", "Priya"],
-                  ["44", "Marcus"],
-                  ["45", "Dana"],
+                  ["22", "Mayank"],
+                  ["23", "Virat"],
+                  ["24", "Bhavya"],
                 ].map(([n, who]) => (
                   <li key={n} className="flex items-center justify-between">
                     <span className="text-muted-foreground">{who}</span>
