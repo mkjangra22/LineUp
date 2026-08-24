@@ -34,7 +34,6 @@ import {
   updateBranding,
   uploadLogo,
   DEFAULT_BRAND_COLOR,
-  type Business,
 } from "@/lib/queue";
 import { BRAND_PRESETS, brandStyle, makeQrDataUrl, printPoster } from "@/lib/brand";
 import { Button } from "@/components/ui/button";
@@ -52,7 +51,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -85,7 +83,7 @@ function Dashboard() {
 
   const businessQuery = useQuery({
     queryKey: ["business", user?.id],
-    queryFn: () => fetchMyBusiness(user!.id),
+    queryFn: () => fetchMyBusiness(user.id),
     enabled: !!user,
     refetchInterval: 5000,
   });
@@ -94,13 +92,11 @@ function Dashboard() {
 
   const ticketsQuery = useQuery({
     queryKey: ["tickets", business?.id],
-    queryFn: () => fetchTickets(business!.id),
+    queryFn: () => fetchTickets(business.id),
     enabled: !!business,
-    // Realtime below is the fast path; this poll guarantees the board stays fresh.
     refetchInterval: 4000,
   });
 
-  // Live updates
   useEffect(() => {
     if (!business) return;
     const channel = supabase
@@ -163,7 +159,7 @@ function Dashboard() {
       <main className="mx-auto max-w-6xl px-6 py-10">
         {!business ? (
           <CreateBusiness
-            userId={user!.id}
+            userId={user.id}
             onCreated={() => businessQuery.refetch()}
           />
         ) : (
@@ -181,13 +177,7 @@ function Dashboard() {
   );
 }
 
-function CreateBusiness({
-  userId,
-  onCreated,
-}: {
-  userId: string;
-  onCreated: () => void;
-}) {
+function CreateBusiness({ userId, onCreated }) {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -236,18 +226,10 @@ function CreateBusiness({
   );
 }
 
-function QueueBoard({
-  business,
-  tickets,
-  refetch,
-}: {
-  business: Business;
-  tickets: import("@/lib/queue").Ticket[];
-  refetch: () => void;
-}) {
-  const [qr, setQr] = useState<string>("");
+function QueueBoard({ business, tickets, refetch }) {
+  const [qr, setQr] = useState("");
   const [busy, setBusy] = useState(false);
-  const [logoSrc, setLogoSrc] = useState<string | null>(null);
+  const [logoSrc, setLogoSrc] = useState(null);
 
   const joinUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -272,13 +254,12 @@ function QueueBoard({
     }).then(setQr);
   }, [joinUrl, business.brand_color, logoSrc]);
 
-
   const waiting = tickets
     .filter((t) => t.status === "waiting")
     .sort((a, b) => a.number - b.number);
   const serving = tickets.find((t) => t.status === "serving") ?? null;
 
-  async function run(fn: () => Promise<unknown>, ok?: string) {
+  async function run(fn, ok) {
     setBusy(true);
     try {
       await fn();
@@ -336,7 +317,7 @@ function QueueBoard({
               onClick={() =>
                 run(
                   () => callNext(business, tickets),
-                  waiting.length ? `Now serving #${waiting[0]!.number}` : undefined,
+                  waiting.length ? `Now serving #${waiting[0].number}` : undefined,
                 )
               }
             >
@@ -362,7 +343,7 @@ function QueueBoard({
               onClick={() =>
                 run(
                   () => skipNext(tickets),
-                  waiting.length ? `Skipped #${waiting[0]!.number}` : undefined,
+                  waiting.length ? `Skipped #${waiting[0].number}` : undefined,
                 )
               }
             >
@@ -510,20 +491,12 @@ function QueueBoard({
   );
 }
 
-function BrandingPanel({
-  business,
-  logoSrc,
-  refetch,
-}: {
-  business: Business;
-  logoSrc: string | null;
-  refetch: () => void;
-}) {
+function BrandingPanel({ business, logoSrc, refetch }) {
   const [name, setName] = useState(business.name);
   const [color, setColor] = useState(business.brand_color || DEFAULT_BRAND_COLOR);
   const [message, setMessage] = useState(business.welcome_message ?? "");
   const [saving, setSaving] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef(null);
 
   useEffect(() => {
     setName(business.name);
@@ -548,7 +521,7 @@ function BrandingPanel({
     }
   }
 
-  async function onPickLogo(file: File) {
+  async function onPickLogo(file) {
     if (file.size > 2 * 1024 * 1024) {
       toast.error("Please pick an image under 2 MB");
       return;

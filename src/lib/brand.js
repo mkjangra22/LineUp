@@ -1,19 +1,18 @@
 import QRCode from "qrcode";
 
 export const BRAND_PRESETS = [
-  "#c05621",
   "#b91c1c",
   "#b45309",
+  "#e8ba22ff",
   "#15803d",
-  "#0f766e",
   "#1d4ed8",
   "#6d28d9",
-  "#3a2f28",
+  "#000000ff",
 ];
 
 const PAPER = "#fdfbf7";
 
-function hexToRgb(hex: string) {
+function hexToRgb(hex) {
   const clean = hex.replace("#", "");
   const full =
     clean.length === 3
@@ -27,7 +26,7 @@ function hexToRgb(hex: string) {
 }
 
 /** Relative luminance — used to pick readable text on top of the brand colour. */
-export function isLightColor(hex: string) {
+export function isLightColor(hex) {
   try {
     const { r, g, b } = hexToRgb(hex);
     return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62;
@@ -37,22 +36,16 @@ export function isLightColor(hex: string) {
 }
 
 /** Inline CSS variables that re-theme the design system to an owner's brand colour. */
-export function brandStyle(hex: string): React.CSSProperties {
+export function brandStyle(hex) {
   return {
-    ["--primary" as string]: hex,
-    ["--ring" as string]: hex,
-    ["--primary-foreground" as string]: isLightColor(hex) ? "#2a231e" : PAPER,
+    "--primary": hex,
+    "--ring": hex,
+    "--primary-foreground": isLightColor(hex) ? "#2a231e" : PAPER,
   };
 }
 
-export type QrOptions = {
-  color: string;
-  logoUrl?: string | null;
-  size?: number;
-};
-
-function loadImage(src: string) {
-  return new Promise<HTMLImageElement>((resolve, reject) => {
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
@@ -62,10 +55,7 @@ function loadImage(src: string) {
 }
 
 /** Renders a QR code in the owner's brand colour, with their logo punched into the middle. */
-export async function makeQrDataUrl(
-  value: string,
-  { color, logoUrl, size = 720 }: QrOptions,
-): Promise<string> {
+export async function makeQrDataUrl(value, { color, logoUrl, size = 720 }) {
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -106,18 +96,11 @@ export async function makeQrDataUrl(
 }
 
 /** Opens a print-ready poster in a new tab. */
-export function printPoster(opts: {
-  businessName: string;
-  message: string;
-  qrDataUrl: string;
-  logoUrl?: string | null;
-  color: string;
-  joinUrl: string;
-}) {
+export function printPoster(opts) {
   const w = window.open("", "_blank", "width=820,height=1100");
   if (!w) return false;
-  const esc = (s: string) =>
-    s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+  const esc = (s) =>
+    s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   w.document.write(`<!doctype html><html><head><meta charset="utf-8">
 <title>${esc(opts.businessName)} — scan to join the queue</title>
 <style>

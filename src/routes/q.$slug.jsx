@@ -35,18 +35,17 @@ export const Route = createFileRoute("/q/$slug")({
   component: JoinPage,
 });
 
-function storageKey(slug: string) {
+function storageKey(slug) {
   return `lineup-ticket:${slug}`;
 }
 
 function JoinPage() {
   const { slug } = Route.useParams();
-  const [ticketId, setTicketId] = useState<string | null>(null);
+  const [ticketId, setTicketId] = useState(null);
   const [hydrated, setHydrated] = useState(false);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
-  const [logo, setLogo] = useState<string | null>(null);
-
+  const [logo, setLogo] = useState(null);
 
   useEffect(() => {
     setTicketId(window.localStorage.getItem(storageKey(slug)));
@@ -61,12 +60,12 @@ function JoinPage() {
 
   const statusQuery = useQuery({
     queryKey: ["ticket", ticketId],
-    queryFn: () => getTicketStatus(ticketId!),
+    queryFn: () => getTicketStatus(ticketId),
     enabled: !!ticketId,
     refetchInterval: 4000,
   });
 
-  async function onJoin(e: React.FormEvent) {
+  async function onJoin(e) {
     e.preventDefault();
     setBusy(true);
     try {
@@ -99,7 +98,7 @@ function JoinPage() {
     };
   }, [info?.logo_path]);
 
-  const shell = (children: React.ReactNode) => (
+  const shell = (children) => (
     <div
       className="flex min-h-screen flex-col bg-background paper-grain"
       style={brandStyle(info?.brand_color || DEFAULT_BRAND_COLOR)}
@@ -128,7 +127,6 @@ function JoinPage() {
     </div>
   );
 
-
   if (!hydrated || infoQuery.isLoading) {
     return shell(
       <div className="flex h-48 items-center justify-center">
@@ -150,8 +148,6 @@ function JoinPage() {
 
   if (!info) return null;
   const status = statusQuery.data;
-
-
 
   if (ticketId && status) {
     const isServing = status.status === "serving";
@@ -244,7 +240,7 @@ function JoinPage() {
             maxLength={60}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Priya"
+            placeholder="e.g. Mayank"
           />
         </div>
         <Button type="submit" size="lg" className="w-full rounded-full" disabled={busy}>

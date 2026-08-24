@@ -9,10 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-type AuthSearch = { mode: "login" | "signup" };
-
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>): AuthSearch => ({
+  validateSearch: (search) => ({
     mode: search["mode"] === "login" ? "login" : "signup",
   }),
   head: () => ({
@@ -47,7 +45,7 @@ function AuthPage() {
     if (!loading && session) navigate({ to: "/dashboard" });
   }, [loading, session, navigate]);
 
-  async function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e) {
     e.preventDefault();
     setBusy(true);
     try {

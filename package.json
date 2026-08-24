@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -28,13 +28,7 @@
     "tw-animate-css": "^1.1.4"
   },
   "devDependencies": {
-    "@types/node": "^22.13.5",
-    "@types/qrcode": "^1.5.5",
-    "@types/react": "^18.3.18",
-    "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
-    "typescript": "^5.7.3",
-    "vite": "^6.1.1",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite": "^6.1.1"
   }
 }

@@ -1,32 +1,9 @@
 import { supabase } from "@/lib/supabase";
 
-export type Ticket = {
-  id: string;
-  business_id: string;
-  number: number;
-  customer_name: string;
-  status: "waiting" | "serving" | "served" | "skipped";
-  created_at: string;
-  served_at: string | null;
-};
-
-export type Business = {
-  id: string;
-  owner_id: string;
-  name: string;
-  slug: string;
-  now_serving: number;
-  paused: boolean;
-  brand_color: string;
-  logo_path: string | null;
-  welcome_message: string | null;
-  created_at: string;
-};
-
 export const DEFAULT_BRAND_COLOR = "#c05621";
 
 /** Logos live in a private bucket; anyone may read, so sign a long-lived URL. */
-export async function logoUrl(path: string | null | undefined) {
+export async function logoUrl(path) {
   if (!path) return null;
   const { data, error } = await supabase.storage
     .from("logos")
@@ -35,7 +12,7 @@ export async function logoUrl(path: string | null | undefined) {
   return data?.signedUrl ?? null;
 }
 
-export async function uploadLogo(userId: string, businessId: string, file: File) {
+export async function uploadLogo(userId, businessId, file) {
   const ext = (file.name.split(".").pop() ?? "png").toLowerCase();
   const path = `${userId}/${businessId}-${Date.now()}.${ext}`;
   const { error } = await supabase.storage
@@ -45,10 +22,7 @@ export async function uploadLogo(userId: string, businessId: string, file: File)
   return path;
 }
 
-export async function updateBranding(
-  businessId: string,
-  values: Partial<Pick<Business, "name" | "brand_color" | "logo_path" | "welcome_message">>,
-) {
+export async function updateBranding(businessId, values) {
   const { error } = await supabase
     .from("businesses")
     .update(values)
@@ -56,8 +30,7 @@ export async function updateBranding(
   if (error) throw error;
 }
 
-
-export function slugify(name: string) {
+export function slugify(name) {
   const base = name
     .toLowerCase()
     .normalize("NFKD")
@@ -68,7 +41,7 @@ export function slugify(name: string) {
   return `${base || "queue"}-${suffix}`;
 }
 
-export async function fetchMyBusiness(userId: string) {
+export async function fetchMyBusiness(userId) {
   const { data, error } = await supabase
     .from("businesses")
     .select("*")
@@ -77,31 +50,31 @@ export async function fetchMyBusiness(userId: string) {
     .limit(1)
     .maybeSingle();
   if (error) throw error;
-  return (data as Business | null) ?? null;
+  return data ?? null;
 }
 
-export async function createBusiness(userId: string, name: string) {
+export async function createBusiness(userId, name) {
   const { data, error } = await supabase
     .from("businesses")
     .insert({ owner_id: userId, name: name.trim(), slug: slugify(name) })
     .select("*")
     .single();
   if (error) throw error;
-  return data as Business;
+  return data;
 }
 
-export async function fetchTickets(businessId: string) {
+export async function fetchTickets(businessId) {
   const { data, error } = await supabase
     .from("tickets")
     .select("*")
     .eq("business_id", businessId)
     .order("number", { ascending: true });
   if (error) throw error;
-  return (data ?? []) as Ticket[];
+  return data ?? [];
 }
 
 /** Marks whoever is currently serving as served, then promotes the next waiting ticket. */
-export async function callNext(business: Business, tickets: Ticket[]) {
+export async function callNext(business, tickets) {
   const current = tickets.find((t) => t.status === "serving");
   if (current) {
     const { error } = await supabase
@@ -132,7 +105,7 @@ export async function callNext(business: Business, tickets: Ticket[]) {
 }
 
 /** Pause / resume: while paused, the public join page refuses new tickets. */
-export async function setPaused(businessId: string, paused: boolean) {
+export async function setPaused(businessId, paused) {
   const { error } = await supabase
     .from("businesses")
     .update({ paused })
@@ -144,7 +117,7 @@ export async function setPaused(businessId: string, paused: boolean) {
  * Skips the next waiting number without serving it (no-show).
  * Leaves whoever is currently being served untouched.
  */
-export async function skipNext(tickets: Ticket[]) {
+export async function skipNext(tickets) {
   const next = tickets
     .filter((t) => t.status === "waiting")
     .sort((a, b) => a.number - b.number)[0];
@@ -157,7 +130,7 @@ export async function skipNext(tickets: Ticket[]) {
   return next;
 }
 
-export async function setTicketStatus(id: string, status: Ticket["status"]) {
+export async function setTicketStatus(id, status) {
   const { error } = await supabase
     .from("tickets")
     .update({
@@ -168,7 +141,7 @@ export async function setTicketStatus(id: string, status: Ticket["status"]) {
   if (error) throw error;
 }
 
-export async function resetQueue(businessId: string) {
+export async function resetQueue(businessId) {
   const { error } = await supabase
     .from("tickets")
     .delete()
@@ -183,53 +156,27 @@ export async function resetQueue(businessId: string) {
 
 /* ---------- public (no login) ---------- */
 
-export type QueueInfo = {
-  business_name: string;
-  now_serving: number;
-  waiting_count: number;
-  paused: boolean;
-  brand_color: string;
-  logo_path: string | null;
-  welcome_message: string | null;
-};
-
-
-export async function getQueueInfo(slug: string) {
+export async function getQueueInfo(slug) {
   const { data, error } = await supabase.rpc("get_queue_info", { p_slug: slug });
   if (error) throw error;
-  return ((data as QueueInfo[] | null) ?? [])[0] ?? null;
+  return (data ?? [])[0] ?? null;
 }
 
-export type JoinResult = {
-  ticket_id: string;
-  ticket_number: number;
-  business_name: string;
-};
-
-export async function joinQueue(slug: string, name: string) {
+export async function joinQueue(slug, name) {
   const { data, error } = await supabase.rpc("join_queue", {
     p_slug: slug,
     p_name: name,
   });
   if (error) throw error;
-  const row = ((data as JoinResult[] | null) ?? [])[0];
+  const row = (data ?? [])[0];
   if (!row) throw new Error("Could not join this queue");
   return row;
 }
 
-export type TicketStatus = {
-  ticket_number: number;
-  customer_name: string;
-  status: Ticket["status"];
-  now_serving: number;
-  people_ahead: number;
-  business_name: string;
-};
-
-export async function getTicketStatus(ticketId: string) {
+export async function getTicketStatus(ticketId) {
   const { data, error } = await supabase.rpc("get_ticket_status", {
     p_ticket_id: ticketId,
   });
   if (error) throw error;
-  return ((data as TicketStatus[] | null) ?? [])[0] ?? null;
+  return (data ?? [])[0] ?? null;
 }
