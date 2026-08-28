@@ -109,6 +109,7 @@ export function printPoster(opts) {
     text-align:center; padding:48px 32px; margin:0; }
   .logo { max-height:90px; max-width:260px; object-fit:contain; margin-bottom:24px; }
   h1 { font-size:44px; margin:0 0 8px; letter-spacing:-0.02em; }
+  .address { font-size:17px; margin:0 0 16px; color:#78695d; }
   p.msg { font-size:22px; margin:0 0 32px; color:#6b5b50; }
   .qr { border:2px dashed #d9cec2; border-radius:24px; padding:20px; display:inline-block; }
   img.qr-img { width:380px; height:380px; display:block; }
@@ -117,6 +118,7 @@ export function printPoster(opts) {
 </style></head><body>
 ${opts.logoUrl ? `<img class="logo" src="${esc(opts.logoUrl)}" alt="">` : ""}
 <h1>${esc(opts.businessName)}</h1>
+${opts.address ? `<div class="address">📍 ${esc(opts.address)}</div>` : ""}
 <p class="msg">${esc(opts.message)}</p>
 <div class="qr"><img class="qr-img" src="${opts.qrDataUrl}" alt="QR code"></div>
 <div class="step">Scan with your phone camera to take a number</div>

@@ -22,7 +22,7 @@ import {
   Smartphone,
   SlidersHorizontal,
   Sparkles,
-  X,
+  MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -467,7 +467,13 @@ function QueueBoard({ business, tickets, refetch, onOpenBranding }) {
             />
           )}
           <h2 className="text-xl font-bold">{business.name}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          {business.address && (
+            <p className="mt-1 flex items-center justify-center gap-1 text-xs text-muted-foreground">
+              <MapPin className="size-3 text-primary shrink-0" />
+              <span>{business.address}</span>
+            </p>
+          )}
+          <p className="mt-1 text-xs text-muted-foreground">
             Print this and stick it on the counter.
           </p>
 
@@ -506,6 +512,7 @@ function QueueBoard({ business, tickets, refetch, onOpenBranding }) {
             onClick={() =>
               printPoster({
                 businessName: business.name,
+                address: business.address,
                 message:
                   business.welcome_message?.trim() ||
                   "Scan to join the queue — no app, no sign-up.",
@@ -528,6 +535,7 @@ function QueueBoard({ business, tickets, refetch, onOpenBranding }) {
 
 function BrandingStudioView({ business, refetch, onBack }) {
   const [name, setName] = useState(business.name);
+  const [address, setAddress] = useState(business.address ?? "");
   const [color, setColor] = useState(business.brand_color || DEFAULT_BRAND_COLOR);
   const [message, setMessage] = useState(business.welcome_message ?? "");
   const [saving, setSaving] = useState(false);
@@ -542,9 +550,10 @@ function BrandingStudioView({ business, refetch, onBack }) {
 
   useEffect(() => {
     setName(business.name);
+    setAddress(business.address ?? "");
     setColor(business.brand_color || DEFAULT_BRAND_COLOR);
     setMessage(business.welcome_message ?? "");
-  }, [business.id, business.name, business.brand_color, business.welcome_message]);
+  }, [business.id, business.name, business.address, business.brand_color, business.welcome_message]);
 
   useEffect(() => {
     let alive = true;
@@ -569,6 +578,7 @@ function BrandingStudioView({ business, refetch, onBack }) {
     try {
       await updateBranding(business.id, {
         name: name.trim() || business.name,
+        address: address.trim() || null,
         brand_color: color,
         welcome_message: message.trim() || null,
       });
@@ -612,7 +622,7 @@ function BrandingStudioView({ business, refetch, onBack }) {
             <h1 className="text-2xl font-bold tracking-tight">Branding & QR Customization</h1>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Personalize your queue colors, upload your brand logo, and customize your customer-facing QR code and posters.
+            Personalize your business name, address, colors, logo, and customer-facing QR code and posters.
           </p>
         </div>
 
@@ -627,7 +637,7 @@ function BrandingStudioView({ business, refetch, onBack }) {
           <div className="stub p-7 space-y-6">
             <div className="flex items-center gap-2 border-b border-border pb-3">
               <SlidersHorizontal className="size-4 text-primary" />
-              <h2 className="text-lg font-bold">Brand Identity</h2>
+              <h2 className="text-lg font-bold">Brand & Location Identity</h2>
             </div>
 
             <div className="space-y-2">
@@ -641,6 +651,20 @@ function BrandingStudioView({ business, refetch, onBack }) {
               />
               <p className="text-xs text-muted-foreground">
                 Shown prominently at the top of your queue and print posters.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="bizaddress">Business address / Location</Label>
+              <Input
+                id="bizaddress"
+                maxLength={120}
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="e.g. 124 Main Street, Ground Floor"
+              />
+              <p className="text-xs text-muted-foreground">
+                Printed on your QR poster and shown on customer ticket pages.
               </p>
             </div>
 
@@ -809,6 +833,7 @@ function BrandingStudioView({ business, refetch, onBack }) {
                   onClick={() =>
                     printPoster({
                       businessName: name || business.name,
+                      address: address,
                       message:
                         message?.trim() ||
                         "Scan to join the queue — no app, no sign-up.",
@@ -856,6 +881,12 @@ function BrandingStudioView({ business, refetch, onBack }) {
                 />
               )}
               <p className="font-display text-base font-bold">{name || business.name}</p>
+              {address.trim() && (
+                <p className="mt-1 flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                  <MapPin className="size-3 text-primary shrink-0" />
+                  <span>{address.trim()}</span>
+                </p>
+              )}
               <p className="mt-1 text-xs text-muted-foreground">
                 {message.trim() || "Take a number to join the line. We'll show your live position."}
               </p>

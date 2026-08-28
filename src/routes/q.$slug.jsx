@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, QrCode, PartyPopper } from "lucide-react";
+import { Loader2, QrCode, PartyPopper, MapPin } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -27,8 +27,8 @@ export const Route = createFileRoute("/q/$slug")({
       },
       { property: "og:title", content: "Join the queue — LineUp" },
       {
-        property: "og:description",
-        content: "Get a queue number on your phone. No login, no download.",
+        name: "robots",
+        content: "noindex",
       },
     ],
   }),
@@ -159,6 +159,12 @@ function JoinPage() {
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
             {status.business_name}
           </p>
+          {info.address && (
+            <p className="mt-1 flex items-center justify-center gap-1 text-xs text-muted-foreground">
+              <MapPin className="size-3 text-primary shrink-0" />
+              <span>{info.address}</span>
+            </p>
+          )}
           <p className="mt-6 text-sm font-medium text-muted-foreground">Your number</p>
           <p className="font-display text-[6rem] font-extrabold leading-none text-primary">
             {status.ticket_number}
@@ -201,6 +207,12 @@ function JoinPage() {
         Join the line
       </p>
       <h1 className="mt-3 text-3xl font-extrabold">{info.business_name}</h1>
+      {info.address && (
+        <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+          <MapPin className="size-3.5 text-primary shrink-0" />
+          <span>{info.address}</span>
+        </p>
+      )}
       {info.welcome_message?.trim() && (
         <p className="mt-2 text-sm text-muted-foreground">{info.welcome_message}</p>
       )}
