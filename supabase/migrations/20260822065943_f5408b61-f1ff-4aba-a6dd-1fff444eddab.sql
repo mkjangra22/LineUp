@@ -20,6 +20,11 @@ $function$;
 REVOKE ALL ON FUNCTION public.get_queue_info(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_queue_info(text) TO anon, authenticated;
 
+-- Create logos storage bucket
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('logos', 'logos', false)
+ON CONFLICT (id) DO NOTHING;
+
 CREATE POLICY "Anyone can read logos"
   ON storage.objects FOR SELECT TO anon, authenticated
   USING (bucket_id = 'logos');
