@@ -1,6 +1,7 @@
 import QRCode from "qrcode";
 
 export const BRAND_PRESETS = [
+  "#077E42",
   "#b91c1c",
   "#b45309",
   "#e8ba22ff",
