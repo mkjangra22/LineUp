@@ -142,7 +142,7 @@ function Dashboard() {
     <div className="min-h-screen bg-background paper-grain">
       {/* Header: Clean with LineUp logo on left and Sign Out on right (No navbar) */}
       <header className="border-b border-border bg-background/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3 sm:py-3.5">
           <Link to="/" className="flex items-center gap-3.5 group">
             <img
               src="/LineUp(Logo).png"
@@ -168,7 +168,7 @@ function Dashboard() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-8">
+      <main className="mx-auto max-w-6xl px-6 pt-5 pb-8 sm:pt-6">
         {!business ? (
           <CreateBusiness
             userId={user.id}

@@ -120,7 +120,7 @@ function AuthPage() {
 
   return (
     <div className="flex flex-col bg-background paper-grain min-h-screen sm:h-screen sm:max-h-dvh sm:overflow-hidden justify-between">
-      <header className="mx-auto flex w-full max-w-6xl items-center px-6 py-3 sm:py-4 shrink-0">
+      <header className="mx-auto flex w-full max-w-6xl items-center px-6 pt-4 pb-2 sm:pt-5 sm:pb-2.5 shrink-0">
         <Link to="/" className="flex items-center gap-4 group">
           <img
             src="/LineUp(Logo).png"
@@ -131,10 +131,10 @@ function AuthPage() {
         </Link>
       </header>
 
-      <main className="flex flex-1 items-center justify-center px-4 sm:px-6 py-2 sm:py-3 overflow-y-auto sm:overflow-hidden">
+      <main className="flex flex-1 items-start justify-center px-4 sm:px-6 pt-6 sm:pt-10 pb-8 overflow-y-auto sm:overflow-hidden">
         {isLogin ? (
           /* Separate Clean Login View */
-          <div className="stub w-full max-w-md px-6 sm:px-8 py-9">
+          <div className="stub w-full max-w-md px-6 sm:px-8 py-8 sm:py-9 mt-1 sm:mt-2">
             <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#077E42] font-semibold">
               Welcome back
             </p>

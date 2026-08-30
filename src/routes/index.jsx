@@ -43,7 +43,7 @@ const steps = [
 function Landing() {
   return (
     <div className="min-h-screen bg-background paper-grain">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 pt-4 pb-2 sm:pt-5 sm:pb-3">
         <div className="flex items-center gap-4">
           <img
             src="/LineUp(Logo).png"
@@ -62,7 +62,7 @@ function Landing() {
       </header>
 
       <main>
-        <section className="mx-auto grid max-w-6xl items-center gap-14 px-6 pb-8 pt-10 lg:grid-cols-[1.1fr_0.9fr] lg:pt-20">
+        <section className="mx-auto grid max-w-6xl items-center gap-12 px-6 pb-8 pt-6 sm:pt-8 lg:pt-10 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
             <span className="inline-flex items-center rounded-full border border-border bg-card px-3 py-1 font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
               No waiting-room chaos

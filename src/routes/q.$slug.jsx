@@ -104,7 +104,7 @@ function JoinPage() {
       className="flex min-h-screen flex-col bg-background paper-grain"
       style={brandStyle(info?.brand_color || DEFAULT_BRAND_COLOR)}
     >
-      <header className="mx-auto flex w-full max-w-lg items-center justify-center px-6 py-7">
+      <header className="mx-auto flex w-full max-w-lg items-center justify-center px-6 pt-5 pb-3 sm:pt-6 sm:pb-4">
         {logo ? (
           <img
             src={logo}
@@ -124,7 +124,7 @@ function JoinPage() {
           </Link>
         )}
       </header>
-      <main className="flex flex-1 justify-center px-6 pb-16">
+      <main className="flex flex-1 justify-center px-6 pt-3 pb-16 sm:pt-4">
         <div className="w-full max-w-md">{children}</div>
       </main>
     </div>

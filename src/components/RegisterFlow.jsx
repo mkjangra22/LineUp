@@ -328,7 +328,7 @@ export function RegisterFlow({ onSwitchToLogin }) {
   }
 
   return (
-    <div className="w-full max-w-2xl my-auto">
+    <div className="w-full max-w-2xl mt-2 sm:mt-4">
       {/* Compact Progress Indicator */}
       <div className="mb-3 sm:mb-4 flex items-center justify-between border-b border-border/70 pb-2 sm:pb-2.5">
         {[
