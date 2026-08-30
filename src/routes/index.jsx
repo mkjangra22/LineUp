@@ -16,6 +16,7 @@ export const Route = createFileRoute("/")({
         content:
           "One QR code on the counter. Customers join the line from their phone. You call the next person from a live dashboard.",
       },
+      { property: "og:image", content: "/LineUp(Logo).png" },
     ],
   }),
   component: Landing,
@@ -43,11 +44,13 @@ function Landing() {
   return (
     <div className="min-h-screen bg-background paper-grain">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <div className="flex items-center gap-2.5">
-          <span className="flex size-9 items-center justify-center rounded-xl warm-gradient text-primary-foreground">
-            <QrCode className="size-5" />
-          </span>
-          <span className="font-display text-lg font-bold tracking-tight">LineUp</span>
+        <div className="flex items-center gap-4">
+          <img
+            src="/LineUp(Logo).png"
+            alt="LineUp logo"
+            className="h-16 sm:h-20 w-auto rounded-xl object-contain"
+          />
+          <span className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">LineUp</span>
         </div>
         <Link
           to="/auth"
@@ -157,7 +160,15 @@ function Landing() {
       </main>
 
       <footer className="border-t border-border py-10 text-center text-sm text-muted-foreground">
-        LineUp — one QR code, zero waiting-room confusion.
+        <div className="flex items-center justify-center gap-2.5 mb-2">
+          <img
+            src="/LineUp(Logo).png"
+            alt="LineUp"
+            className="h-7 w-auto rounded-md object-contain"
+          />
+          <span className="font-display text-base font-bold text-foreground">LineUp</span>
+        </div>
+        One QR code, zero waiting-room confusion.
       </footer>
     </div>
   );

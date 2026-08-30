@@ -6,6 +6,10 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="stub max-w-md px-8 py-10 text-center">
+        <Link to="/" className="inline-flex items-center gap-3.5 mb-5 group">
+          <img src="/LineUp(Logo).png" alt="LineUp" className="h-14 w-auto rounded-xl object-contain transition-transform group-hover:scale-105" />
+          <span className="font-display text-3xl font-extrabold tracking-tight">LineUp</span>
+        </Link>
         <p className="font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground">
           404 Not Found
         </p>
@@ -33,6 +37,10 @@ function ErrorComponent({ error, reset }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="stub max-w-md px-8 py-10 text-center">
+        <Link to="/" className="inline-flex items-center gap-3.5 mb-5 group">
+          <img src="/LineUp(Logo).png" alt="LineUp" className="h-14 w-auto rounded-xl object-contain transition-transform group-hover:scale-105" />
+          <span className="font-display text-3xl font-extrabold tracking-tight">LineUp</span>
+        </Link>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Something went wrong
         </h1>

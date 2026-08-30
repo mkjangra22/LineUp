@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, QrCode, PartyPopper, MapPin } from "lucide-react";
+import { Loader2, PartyPopper, MapPin } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -26,6 +26,7 @@ export const Route = createFileRoute("/q/$slug")({
           "Enter your name to get a queue number and watch your place in line update live.",
       },
       { property: "og:title", content: "Join the queue — LineUp" },
+      { property: "og:image", content: "/LineUp(Logo).png" },
       {
         name: "robots",
         content: "noindex",
@@ -111,11 +112,13 @@ function JoinPage() {
             className="h-12 object-contain"
           />
         ) : (
-          <Link to="/" className="flex items-center gap-2.5">
-            <span className="flex size-8 items-center justify-center rounded-lg warm-gradient text-primary-foreground">
-              <QrCode className="size-4" />
-            </span>
-            <span className="font-display text-base font-bold tracking-tight">
+          <Link to="/" className="flex items-center gap-3.5 group">
+            <img
+              src="/LineUp(Logo).png"
+              alt="LineUp logo"
+              className="h-14 sm:h-16 w-auto rounded-xl object-contain transition-transform group-hover:scale-105"
+            />
+            <span className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight">
               LineUp
             </span>
           </Link>

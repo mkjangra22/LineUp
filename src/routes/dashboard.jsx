@@ -69,6 +69,7 @@ export const Route = createFileRoute("/dashboard")({
           "Your live queue: see who is waiting, call the next person, and share your QR code.",
       },
       { property: "og:title", content: "Queue dashboard — LineUp" },
+      { property: "og:image", content: "/LineUp(Logo).png" },
       {
         name: "robots",
         content: "noindex",
@@ -142,11 +143,13 @@ function Dashboard() {
       {/* Header: Clean with LineUp logo on left and Sign Out on right (No navbar) */}
       <header className="border-b border-border bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Link to="/" className="flex items-center gap-2.5">
-            <span className="flex size-9 items-center justify-center rounded-xl warm-gradient text-primary-foreground">
-              <QrCode className="size-5" />
-            </span>
-            <span className="font-display text-lg font-bold tracking-tight">
+          <Link to="/" className="flex items-center gap-3.5 group">
+            <img
+              src="/LineUp(Logo).png"
+              alt="LineUp logo"
+              className="h-14 sm:h-16 w-auto rounded-xl object-contain transition-transform group-hover:scale-105"
+            />
+            <span className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight">
               LineUp
             </span>
           </Link>

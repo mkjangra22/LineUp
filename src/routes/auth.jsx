@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { QrCode, Loader2, Lock, Mail, Eye, EyeOff } from "lucide-react";
+import { Loader2, Lock, Mail, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/lib/supabase";
@@ -28,6 +28,7 @@ export const Route = createFileRoute("/auth")({
         property: "og:description",
         content: "Set up your business workspace and start managing queues in minutes.",
       },
+      { property: "og:image", content: "/LineUp(Logo).png" },
     ],
   }),
   component: AuthPage,
@@ -120,11 +121,13 @@ function AuthPage() {
   return (
     <div className="flex flex-col bg-background paper-grain min-h-screen sm:h-screen sm:max-h-dvh sm:overflow-hidden justify-between">
       <header className="mx-auto flex w-full max-w-6xl items-center px-6 py-3 sm:py-4 shrink-0">
-        <Link to="/" className="flex items-center gap-2.5">
-          <span className="flex size-8 sm:size-9 items-center justify-center rounded-xl bg-[#077E42] text-primary-foreground shadow-sm">
-            <QrCode className="size-4 sm:size-5" />
-          </span>
-          <span className="font-display text-lg font-bold tracking-tight">LineUp</span>
+        <Link to="/" className="flex items-center gap-4 group">
+          <img
+            src="/LineUp(Logo).png"
+            alt="LineUp logo"
+            className="h-14 sm:h-16 w-auto rounded-xl object-contain transition-transform group-hover:scale-105"
+          />
+          <span className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight">LineUp</span>
         </Link>
       </header>
 
