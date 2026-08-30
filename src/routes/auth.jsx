@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
-import { fetchMyBusiness } from "@/lib/queue";
+import { fetchMyBusiness, completeOnboardingFlow } from "@/lib/queue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -77,7 +77,31 @@ function AuthPage() {
       if (error) throw error;
 
       // Determine business membership & ownership under RLS
-      const biz = await fetchMyBusiness(data.user.id);
+      let biz = await fetchMyBusiness(data.user.id);
+
+      // If no business exists yet, check if there is pending onboarding data from registration
+      if (!biz) {
+        try {
+          const raw = localStorage.getItem("lineup_pending_onboarding");
+          if (raw) {
+            const pending = JSON.parse(raw);
+            if (pending?.businessName) {
+              const res = await completeOnboardingFlow({
+                user: data.user,
+                businessName: pending.businessName,
+                address: pending.address || "",
+                businessType: pending.businessType || null,
+                phone: pending.phone || null,
+              });
+              biz = res?.business;
+              localStorage.removeItem("lineup_pending_onboarding");
+            }
+          }
+        } catch (onboardingErr) {
+          console.warn("Auto-onboarding error on login:", onboardingErr);
+        }
+      }
+
       if (biz) {
         toast.success("Welcome back!");
         navigate({ to: "/dashboard" });

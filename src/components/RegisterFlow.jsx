@@ -194,51 +194,105 @@ export function RegisterFlow({ onSwitchToLogin }) {
 
     setBusy(true);
     try {
-      let authUser = null;
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          data: {
-            phone: phone.trim(),
-            business_name: businessName.trim(),
-          },
-        },
-      });
-
-      if (signUpError) {
-        if (
-          signUpError.message?.toLowerCase().includes("already registered") ||
-          signUpError.message?.toLowerCase().includes("user_already_exists")
-        ) {
-          const { data: signInData, error: signInError } =
-            await supabase.auth.signInWithPassword({
-              email: email.trim(),
-              password,
-            });
-
-          if (signInError) {
-            throw new Error(
-              "An account with this email already exists. Please sign in or use a different email."
-            );
-          }
-          authUser = signInData?.user;
-        } else {
-          throw signUpError;
-        }
-      } else {
-        authUser = signUpData?.user;
-      }
-
-      if (!authUser) {
-        throw new Error("Could not initialize authentication. Please try again.");
-      }
-
       const finalCategory =
         businessType === "Other"
           ? customBusinessType.trim() || "Other"
           : businessType;
 
+      // 1. Check if user already has an active authenticated session
+      let authUser = null;
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session?.user) {
+        authUser = sessionData.session.user;
+      }
+
+      // 2. If no active session, attempt signUp or resume existing account via signIn
+      if (!authUser) {
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            data: {
+              phone: phone.trim(),
+              business_name: businessName.trim(),
+            },
+          },
+        });
+
+        if (signUpError) {
+          const isRateLimit =
+            signUpError.code === "over_email_send_rate_limit" ||
+            signUpError.message?.toLowerCase().includes("rate limit");
+          const isExisting =
+            signUpError.message?.toLowerCase().includes("already registered") ||
+            signUpError.message?.toLowerCase().includes("user_already_exists");
+
+          if (isRateLimit || isExisting) {
+            // Attempt to sign in with password in case account was created in a previous step
+            const { data: signInData, error: signInError } =
+              await supabase.auth.signInWithPassword({
+                email: email.trim(),
+                password,
+              });
+
+            if (!signInError && signInData?.user && signInData?.session) {
+              authUser = signInData.user;
+            } else if (isRateLimit) {
+              throw new Error(
+                "Email verification rate limit exceeded. If you already created this account, please sign in. Otherwise, please wait a few moments or disable email confirmations in your Supabase dashboard."
+              );
+            } else if (signInError) {
+              throw new Error(
+                "An account with this email already exists. Please sign in with your existing password or use a different email."
+              );
+            }
+          } else {
+            throw signUpError;
+          }
+        } else {
+          // signUp succeeded
+          if (signUpData.session) {
+            authUser = signUpData.user;
+          } else {
+            // Email confirmation is required by Supabase project settings.
+            // Attempt immediate password login in case session can be established.
+            const { data: signInData } = await supabase.auth.signInWithPassword({
+              email: email.trim(),
+              password,
+            });
+
+            if (signInData?.session?.user) {
+              authUser = signInData.session.user;
+            } else {
+              // Save pending onboarding so that upon confirmation & login, workspace is completed
+              try {
+                localStorage.setItem(
+                  "lineup_pending_onboarding",
+                  JSON.stringify({
+                    businessName: businessName.trim(),
+                    address: address.trim(),
+                    businessType: finalCategory,
+                    phone: phone.trim(),
+                  })
+                );
+              } catch (_) {}
+
+              toast.success(
+                "Account created! Please check your email inbox to confirm your account, then sign in to access your dashboard.",
+                { duration: 10000 }
+              );
+              onSwitchToLogin();
+              return;
+            }
+          }
+        }
+      }
+
+      if (!authUser) {
+        throw new Error("Could not authenticate user session. Please sign in.");
+      }
+
+      // 3. Complete database and storage onboarding flow with authenticated session
       const { business, logoWarning } = await completeOnboardingFlow({
         user: authUser,
         businessName: businessName.trim(),
@@ -249,6 +303,11 @@ export function RegisterFlow({ onSwitchToLogin }) {
         brandColor: DEFAULT_BRAND_COLOR,
       });
 
+      // Clear any pending onboarding data
+      try {
+        localStorage.removeItem("lineup_pending_onboarding");
+      } catch (_) {}
+
       if (logoWarning) {
         toast.warning(logoWarning);
       } else {
@@ -258,7 +317,11 @@ export function RegisterFlow({ onSwitchToLogin }) {
       navigate({ to: "/dashboard" });
     } catch (err) {
       console.error("[Registration] Error:", err);
-      toast.error(err instanceof Error ? err.message : "Registration failed.");
+      const errMsg =
+        err?.message ||
+        err?.error_description ||
+        (typeof err === "string" ? err : "Registration failed. Please try again.");
+      toast.error(errMsg);
     } finally {
       setBusy(false);
     }
