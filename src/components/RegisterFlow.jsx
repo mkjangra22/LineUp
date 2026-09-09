@@ -912,7 +912,7 @@ export function RegisterFlow({ onSwitchToLogin }) {
                   </>
                 ) : (
                   <>
-                    Start with Free <Sparkles className="ml-1.5 size-3.5" />
+                    Start with Free
                   </>
                 )}
               </Button>
