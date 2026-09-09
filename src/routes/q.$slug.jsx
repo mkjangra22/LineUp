@@ -1,7 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, PartyPopper, MapPin } from "lucide-react";
+import {
+  Loader2,
+  PartyPopper,
+  MapPin,
+  Bell,
+  BellRing,
+  Volume2,
+  Sparkles,
+  CheckCircle2,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -12,6 +22,13 @@ import {
   logoUrl,
 } from "@/lib/queue";
 import { brandStyle } from "@/lib/brand";
+import {
+  unlockAudio,
+  playTurnChime,
+  vibratePhone,
+  notifyCustomerTurn,
+  requestNotificationPermission,
+} from "@/lib/notifications";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,11 +64,32 @@ function JoinPage() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [logo, setLogo] = useState(null);
+  const [notifState, setNotifState] = useState("default");
+  const [showTurnModal, setShowTurnModal] = useState(false);
+
+  const prevStatusRef = useRef(null);
 
   useEffect(() => {
     setTicketId(window.localStorage.getItem(storageKey(slug)));
     setHydrated(true);
+
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setNotifState(Notification.permission);
+    } else {
+      setNotifState("unsupported");
+    }
   }, [slug]);
+
+  // Unlock AudioContext on first tap anywhere
+  useEffect(() => {
+    const handleTouch = () => unlockAudio();
+    window.addEventListener("click", handleTouch, { once: true });
+    window.addEventListener("touchstart", handleTouch, { once: true });
+    return () => {
+      window.removeEventListener("click", handleTouch);
+      window.removeEventListener("touchstart", handleTouch);
+    };
+  }, []);
 
   const infoQuery = useQuery({
     queryKey: ["queue-info", slug],
@@ -63,17 +101,55 @@ function JoinPage() {
     queryKey: ["ticket", ticketId],
     queryFn: () => getTicketStatus(ticketId),
     enabled: !!ticketId,
-    refetchInterval: 4000,
+    refetchInterval: 3500,
   });
+
+  const status = statusQuery.data;
+
+  // Detect transition to "serving" and trigger Audio + Vibration + Push + Modal
+  useEffect(() => {
+    if (!status) return;
+
+    if (
+      status.status === "serving" &&
+      prevStatusRef.current !== "serving"
+    ) {
+      setShowTurnModal(true);
+      notifyCustomerTurn({
+        ticketNumber: status.ticket_number,
+        businessName: status.business_name,
+      });
+    }
+
+    prevStatusRef.current = status.status;
+  }, [status]);
+
+  async function onEnableNotifications() {
+    unlockAudio();
+    const perm = await requestNotificationPermission();
+    setNotifState(perm);
+    if (perm === "granted") {
+      toast.success("Alerts enabled! We'll chime, vibrate, and notify you.");
+    } else if (perm === "denied") {
+      toast.error("Notification permission denied in browser settings.");
+    }
+  }
 
   async function onJoin(e) {
     e.preventDefault();
     setBusy(true);
+    unlockAudio();
+
     try {
       const res = await joinQueue(slug, name);
       window.localStorage.setItem(storageKey(slug), res.ticket_id);
       setTicketId(res.ticket_id);
-      toast.success(`You're number ${res.ticket_number}`);
+      toast.success(`You're number #${res.ticket_number}`);
+
+      // Ask for notification permission right after joining if still default
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+        requestNotificationPermission().then((p) => setNotifState(p));
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not join the queue");
     } finally {
@@ -85,6 +161,8 @@ function JoinPage() {
     window.localStorage.removeItem(storageKey(slug));
     setTicketId(null);
     setName("");
+    setShowTurnModal(false);
+    prevStatusRef.current = null;
   }
 
   const info = infoQuery.data ?? null;
@@ -150,7 +228,6 @@ function JoinPage() {
   }
 
   if (!info) return null;
-  const status = statusQuery.data;
 
   if (ticketId && status) {
     const isServing = status.status === "serving";
@@ -158,7 +235,65 @@ function JoinPage() {
 
     return shell(
       <div className="space-y-4">
-        <div className="stub-notched px-8 py-10 text-center">
+        {/* Fullscreen Turn Alert Modal */}
+        {showTurnModal && isServing && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="relative w-full max-w-sm rounded-3xl bg-card border-2 border-primary p-7 text-center shadow-2xl animate-in zoom-in-95 duration-200">
+              <button
+                type="button"
+                onClick={() => setShowTurnModal(false)}
+                className="absolute top-4 right-4 rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                aria-label="Close"
+              >
+                <X className="size-5" />
+              </button>
+
+              <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl bg-primary/15 text-primary animate-bounce">
+                <PartyPopper className="size-8" />
+              </div>
+
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
+                <Sparkles className="size-3.5" /> IT'S YOUR TURN!
+              </span>
+
+              <p className="mt-3 text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                {status.business_name}
+              </p>
+
+              <div className="my-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                  Your Number
+                </p>
+                <p className="font-display text-7xl font-black text-primary leading-none my-1">
+                  #{status.ticket_number}
+                </p>
+              </div>
+
+              <p className="text-sm font-medium text-foreground">
+                Please step up to the counter now!
+              </p>
+
+              <div className="mt-6 flex flex-col gap-2.5">
+                <Button
+                  size="lg"
+                  className="w-full rounded-full gap-2 font-bold shadow-md"
+                  onClick={() => setShowTurnModal(false)}
+                >
+                  <CheckCircle2 className="size-4" /> I'm heading over
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Live Ticket Card */}
+        <div
+          className={`stub-notched px-8 py-10 text-center transition-all ${
+            isServing
+              ? "ring-4 ring-primary/40 border-primary bg-primary/5 animate-pulse"
+              : ""
+          }`}
+        >
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
             {status.business_name}
           </p>
@@ -168,15 +303,20 @@ function JoinPage() {
               <span>{info.address}</span>
             </p>
           )}
+
           <p className="mt-6 text-sm font-medium text-muted-foreground">Your number</p>
           <p className="font-display text-[6rem] font-extrabold leading-none text-primary">
             {status.ticket_number}
           </p>
+
           <div className="my-7 border-t border-dashed border-border" />
+
           {isServing ? (
-            <p className="flex items-center justify-center gap-2 text-lg font-bold text-success">
-              <PartyPopper className="size-5" /> It's your turn — head over!
-            </p>
+            <div className="space-y-3">
+              <p className="flex items-center justify-center gap-2 text-xl font-black text-primary animate-bounce">
+                <PartyPopper className="size-6" /> It's your turn — head over!
+              </p>
+            </div>
           ) : isDone ? (
             <p className="text-lg font-bold text-muted-foreground">
               This ticket is closed.
@@ -185,7 +325,7 @@ function JoinPage() {
             <>
               <p className="text-3xl font-extrabold">
                 {status.people_ahead === 0
-                  ? "You're next"
+                  ? "You're next!"
                   : `${status.people_ahead} ahead of you`}
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -194,10 +334,31 @@ function JoinPage() {
             </>
           )}
         </div>
+
+        {/* Proactive Notification Controls Bar */}
+        {!isDone && notifState !== "unsupported" && (
+          <div className="rounded-2xl border border-border bg-card/60 p-3 text-center">
+            {notifState !== "granted" ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full rounded-full gap-1.5 text-xs text-muted-foreground border-dashed"
+                onClick={onEnableNotifications}
+              >
+                <Bell className="size-3.5" /> Enable background push alert
+              </Button>
+            ) : (
+              <p className="text-[11px] text-muted-foreground flex items-center justify-center gap-1.5 font-medium">
+                <BellRing className="size-3.5 text-primary" /> Background push alert active
+              </p>
+            )}
+          </div>
+        )}
+
         <p className="text-center text-xs text-muted-foreground">
-          This page updates on its own — keep it open.
+          This page updates automatically — keep it open or in the background.
         </p>
-        <Button variant="ghost" className="w-full rounded-full" onClick={leave}>
+        <Button variant="ghost" className="w-full rounded-full text-muted-foreground" onClick={leave}>
           Leave the queue
         </Button>
       </div>,
@@ -246,27 +407,27 @@ function JoinPage() {
           </p>
         </div>
       ) : (
-      <form onSubmit={onJoin} className="mt-7 space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Your name</Label>
-          <Input
-            id="name"
-            required
-            maxLength={60}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Mayank"
-          />
-        </div>
-        <Button type="submit" size="lg" className="w-full rounded-full" disabled={busy}>
-          {busy && <Loader2 className="size-4 animate-spin" />}
-          Get my number
-        </Button>
-      </form>
+        <form onSubmit={onJoin} className="mt-7 space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Your name</Label>
+            <Input
+              id="name"
+              required
+              maxLength={60}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Mayank"
+            />
+          </div>
+          <Button type="submit" size="lg" className="w-full rounded-full" disabled={busy}>
+            {busy && <Loader2 className="size-4 animate-spin" />}
+            Get my number
+          </Button>
+        </form>
       )}
       {!info.paused && (
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          No account needed. We only use your name to call you.
+          No account needed. Your phone will chime and vibrate when your turn arrives.
         </p>
       )}
     </div>,
