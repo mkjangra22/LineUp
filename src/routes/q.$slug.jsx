@@ -10,6 +10,7 @@ import {
   Volume2,
   Sparkles,
   CheckCircle2,
+  Sun,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ import {
   joinQueue,
   logoUrl,
 } from "@/lib/queue";
+import { supabase } from "@/lib/supabase";
 import { brandStyle } from "@/lib/brand";
 import {
   unlockAudio,
@@ -28,6 +30,8 @@ import {
   vibratePhone,
   notifyCustomerTurn,
   requestNotificationPermission,
+  requestWakeLock,
+  releaseWakeLock,
 } from "@/lib/notifications";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,14 +84,16 @@ function JoinPage() {
     }
   }, [slug]);
 
-  // Unlock AudioContext on first tap anywhere
+  // Silently initialize audio engine on first user touch (once)
   useEffect(() => {
     const handleTouch = () => unlockAudio();
     window.addEventListener("click", handleTouch, { once: true });
     window.addEventListener("touchstart", handleTouch, { once: true });
+    window.addEventListener("pointerdown", handleTouch, { once: true });
     return () => {
       window.removeEventListener("click", handleTouch);
       window.removeEventListener("touchstart", handleTouch);
+      window.removeEventListener("pointerdown", handleTouch);
     };
   }, []);
 
@@ -101,8 +107,27 @@ function JoinPage() {
     queryKey: ["ticket", ticketId],
     queryFn: () => getTicketStatus(ticketId),
     enabled: !!ticketId,
-    refetchInterval: 3500,
+    refetchInterval: 3000,
   });
+
+  // Listen to realtime updates for this ticket
+  useEffect(() => {
+    if (!ticketId) return;
+    const channel = supabase
+      .channel(`ticket-status-${ticketId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tickets", filter: `id=eq.${ticketId}` },
+        () => {
+          statusQuery.refetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [ticketId]);
 
   const status = statusQuery.data;
 
@@ -124,6 +149,30 @@ function JoinPage() {
     prevStatusRef.current = status.status;
   }, [status]);
 
+  // Keep screen awake while waiting in line so mobile phone does not sleep
+  useEffect(() => {
+    if (!ticketId || !status) return;
+    const isDone = status.status === "served" || status.status === "skipped";
+    if (isDone) {
+      releaseWakeLock();
+      return;
+    }
+
+    requestWakeLock();
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      releaseWakeLock();
+    };
+  }, [ticketId, status?.status]);
+
   async function onEnableNotifications() {
     unlockAudio();
     const perm = await requestNotificationPermission();
@@ -139,6 +188,7 @@ function JoinPage() {
     e.preventDefault();
     setBusy(true);
     unlockAudio();
+    requestWakeLock();
 
     try {
       const res = await joinQueue(slug, name);
@@ -158,6 +208,7 @@ function JoinPage() {
   }
 
   function leave() {
+    releaseWakeLock();
     window.localStorage.removeItem(storageKey(slug));
     setTicketId(null);
     setName("");
@@ -355,10 +406,14 @@ function JoinPage() {
           </div>
         )}
 
-        <p className="text-center text-xs text-muted-foreground">
-          This page updates automatically — keep it open or in the background.
-        </p>
-        <Button variant="ghost" className="w-full rounded-full text-muted-foreground" onClick={leave}>
+        {!isDone && (
+          <p className="text-[11px] text-muted-foreground flex items-center justify-center gap-1.5 font-medium">
+            <Sun className="size-3.5 text-amber-500 shrink-0 animate-pulse" />
+            <span>Screen stays awake automatically while in line</span>
+          </p>
+        )}
+
+        <Button variant="ghost" className="w-full rounded-full text-muted-foreground text-xs" onClick={leave}>
           Leave the queue
         </Button>
       </div>,
@@ -416,7 +471,7 @@ function JoinPage() {
               maxLength={60}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Mayank"
+              placeholder="Enter your name"
             />
           </div>
           <Button type="submit" size="lg" className="w-full rounded-full" disabled={busy}>
