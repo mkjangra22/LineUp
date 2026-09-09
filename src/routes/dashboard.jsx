@@ -273,7 +273,9 @@ function QueueBoard({ business, tickets, refetch, onOpenBranding }) {
     makeQrDataUrl(joinUrl, {
       color: business.brand_color || DEFAULT_BRAND_COLOR,
       logoUrl: logoSrc,
-    }).then(setQr);
+    })
+      .then(setQr)
+      .catch((err) => console.error("Failed to generate QR:", err));
   }, [joinUrl, business.brand_color, logoSrc]);
 
   const waiting = tickets
@@ -573,7 +575,9 @@ function BrandingStudioView({ business, refetch, onBack }) {
     makeQrDataUrl(joinUrl, {
       color: color || DEFAULT_BRAND_COLOR,
       logoUrl: logoSrc,
-    }).then(setQr);
+    })
+      .then(setQr)
+      .catch((err) => console.error("Failed to generate QR preview:", err));
   }, [joinUrl, color, logoSrc]);
 
   async function save() {

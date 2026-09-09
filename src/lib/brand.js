@@ -56,44 +56,63 @@ function loadImage(src) {
 }
 
 /** Renders a QR code in the owner's brand colour, with their logo punched into the middle. */
-export async function makeQrDataUrl(value, { color, logoUrl, size = 720 }) {
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
+export async function makeQrDataUrl(value, { color, logoUrl, size = 720 } = {}) {
+  if (!value) return "";
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
 
-  await QRCode.toCanvas(canvas, value, {
-    width: size,
-    margin: 1,
-    errorCorrectionLevel: "H",
-    color: { dark: color, light: PAPER },
-  });
+    let darkColor = color;
+    if (!darkColor || typeof darkColor !== "string" || !darkColor.startsWith("#")) {
+      darkColor = "#077E42";
+    }
 
-  if (logoUrl) {
-    try {
-      const img = await loadImage(logoUrl);
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        const box = Math.round(size * 0.22);
-        const pad = Math.round(box * 0.16);
-        const x = (size - box) / 2;
-        const y = (size - box) / 2;
+    await QRCode.toCanvas(canvas, value, {
+      width: size,
+      margin: 1,
+      errorCorrectionLevel: "H",
+      color: { dark: darkColor, light: PAPER },
+    });
 
-        ctx.fillStyle = PAPER;
-        ctx.beginPath();
-        ctx.roundRect(x - pad, y - pad, box + pad * 2, box + pad * 2, box * 0.22);
-        ctx.fill();
+    if (logoUrl) {
+      try {
+        const img = await loadImage(logoUrl);
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          const box = Math.round(size * 0.22);
+          const pad = Math.round(box * 0.16);
+          const x = (size - box) / 2;
+          const y = (size - box) / 2;
 
-        const ratio = Math.min(box / img.width, box / img.height);
-        const w = img.width * ratio;
-        const h = img.height * ratio;
-        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+          ctx.fillStyle = PAPER;
+          ctx.beginPath();
+          ctx.roundRect(x - pad, y - pad, box + pad * 2, box + pad * 2, box * 0.22);
+          ctx.fill();
+
+          const ratio = Math.min(box / img.width, box / img.height);
+          const w = img.width * ratio;
+          const h = img.height * ratio;
+          ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+        }
+      } catch {
+        // A broken logo should never stop the QR code from rendering.
       }
+    }
+
+    return canvas.toDataURL("image/png");
+  } catch (err) {
+    console.error("makeQrDataUrl error:", err);
+    try {
+      const fallbackCanvas = document.createElement("canvas");
+      fallbackCanvas.width = size;
+      fallbackCanvas.height = size;
+      await QRCode.toCanvas(fallbackCanvas, value, { width: size, margin: 1 });
+      return fallbackCanvas.toDataURL("image/png");
     } catch {
-      // A broken logo should never stop the QR code from rendering.
+      return "";
     }
   }
-
-  return canvas.toDataURL("image/png");
 }
 
 /** Opens a print-ready poster in a new tab. */
