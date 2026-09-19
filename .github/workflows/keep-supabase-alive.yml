@@ -1,0 +1,20 @@
+name: Keep Supabase Active
+
+on:
+  schedule:
+    # Every day at approximately 9:00 AM IST
+    - cron: "30 3 * * *"
+
+  # Allows manual testing
+  workflow_dispatch:
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Supabase Database
+        run: |
+          curl --fail --show-error \
+            "https://snyhaspyjxcjonejajdg.supabase.co/rest/v1/keep_alive?select=id,status&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}"
