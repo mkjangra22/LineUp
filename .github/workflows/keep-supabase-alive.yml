@@ -16,5 +16,5 @@ jobs:
       - name: Ping Supabase Database
         run: |
           curl --fail --show-error \
-            "https://snyhaspyjxcjonejajdg.supabase.co/rest/v1/keep_alive?select=id,status&limit=1" \
+            "https://avapxjnjmhbczjagpmis.supabase.co/rest/v1/keep_alive?select=id,status&limit=1" \
             -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}"
